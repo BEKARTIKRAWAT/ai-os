@@ -57,7 +57,7 @@ export default function Home() {
 
   const loadSessions = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/sessions");
+      const res = await fetch("https://hundredxmind.up.railway.app/sessions");
       const data = await res.json();
       setSessions(data.sessions);
     } catch (error) {
@@ -67,7 +67,7 @@ export default function Home() {
 
   const loadHistory = async (sid: string) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/history/${sid}`);
+      const res = await fetch(`https://hundredxmind.up.railway.app/history/${sid}`);
       const data = await res.json();
       setMessages(data.history.map((m: any) => ({
         role: m.role === "assistant" ? "ai" : m.role,
@@ -84,7 +84,7 @@ export default function Home() {
 
   const deleteSession = async (sid: string) => {
     try {
-      await fetch(`http://127.0.0.1:8000/session/${sid}`, { method: "DELETE" });
+      await fetch(`https://hundredxmind.up.railway.app/session/${sid}`, { method: "DELETE" });
       loadSessions();
       if (sessionId === sid) {
         setMessages([]);
@@ -132,7 +132,7 @@ export default function Home() {
       formData.append("question", input);
 
       try {
-        const res = await fetch("http://127.0.0.1:8000/analyze-file", {
+        const res = await fetch("https://hundredxmind.up.railway.app/analyze-file", {
           method: "POST",
           body: formData,
         });
@@ -164,7 +164,7 @@ export default function Home() {
     setInput("");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/chat", {
+      const res = await fetch("https://hundredxmind.up.railway.app/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -357,7 +357,7 @@ export default function Home() {
                                 <span className="text-xs text-gray-400">{match[1]}</span>
                                 <button
                                   onClick={async () => {
-                                    const res = await fetch("http://127.0.0.1:8000/execute-code", {
+                                    const res = await fetch("https://hundredxmind.up.railway.app/execute-code", {
                                       method: "POST",
                                       headers: { "Content-Type": "application/json" },
                                       body: JSON.stringify({ code: codeString, language: match[1] })
