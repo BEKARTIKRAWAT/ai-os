@@ -418,10 +418,7 @@ export default function Home() {
               </button>
             )}
             
-        <a href="/analytics" className={`text-xs px-3 py-1.5 rounded-xl transition-all ${theme === "dark" ? "text-gray-400 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-100"}`}>{"📊"}</a>
-              📊
-            </a>
-          </div>
+       <a href="/analytics" className={`text-xs px-3 py-1.5 rounded-xl transition-all ${theme === "dark" ? "text-gray-400 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-100"}`}>{"📊"}</a>
         </header>
 
         {/* Messages Area */}
