@@ -1,8 +1,12 @@
+from dotenv import load_dotenv
+load_dotenv()
 import os
 import PyPDF2
 from groq import Groq
 
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+def get_client():
+    load_dotenv()
+    return Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def extract_text_from_file(file_bytes: bytes, filename: str) -> str:
     ext = filename.split(".")[-1].lower()
@@ -22,31 +26,26 @@ def extract_text_from_file(file_bytes: bytes, filename: str) -> str:
         return f"File type .{ext} supported nahi hai abhi."
 
 def analyze_file(file_bytes: bytes, filename: str, user_question: str = "") -> dict:
+    client = get_client()
     content = extract_text_from_file(file_bytes, filename)
     
     if not content.strip():
         return {"response": "File empty hai ya read nahi ho saki!", "agent_used": "file", "tokens_used": 0}
     
-    # Truncate if too long
     if len(content) > 8000:
-        content = content[:8000] + "\n\n... [File bahut badi hai, pehle 8000 characters analyze kar raha hoon]"
+        content = content[:8000] + "\n\n... [File bahut badi hai]"
     
     ext = filename.split(".")[-1].lower()
-    
-    if ext == "pdf":
-        file_type = "PDF Document"
-    elif ext in ["py"]:
-        file_type = "Python Code"
-    elif ext in ["js", "ts"]:
-        file_type = "JavaScript/TypeScript Code"
-    elif ext in ["json"]:
-        file_type = "JSON Data"
-    elif ext in ["csv"]:
-        file_type = "CSV Data"
-    else:
-        file_type = "Text File"
+    file_type = {
+        "pdf": "PDF Document",
+        "py": "Python Code",
+        "js": "JavaScript Code",
+        "ts": "TypeScript Code",
+        "json": "JSON Data",
+        "csv": "CSV Data"
+    }.get(ext, "Text File")
 
-    question = user_question if user_question else "Is file ka comprehensive analysis karo. Key points, summary, aur insights do."
+    question = user_question if user_question else "Is file ka comprehensive analysis karo."
 
     messages = [
         {
@@ -54,20 +53,15 @@ def analyze_file(file_bytes: bytes, filename: str, user_question: str = "") -> d
             "content": f"""You are an expert file analyzer inside AI-OS.
 You have been given a {file_type} to analyze.
 Provide extremely detailed, structured, and insightful analysis.
-Format your response with proper markdown including headers, bullet points, and code blocks where relevant.
-Be thorough and professional."""
+Format your response with proper markdown."""
         },
         {
             "role": "user", 
             "content": f"""File name: {filename}
-File type: {file_type}
-
 File content:
 {content}
 
-User question/instruction: {question}
-
-Please provide a comprehensive analysis."""
+User question: {question}"""
         }
     ]
     

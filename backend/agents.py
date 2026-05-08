@@ -1,8 +1,12 @@
+from dotenv import load_dotenv
+load_dotenv()
+import os
 from groq import Groq
 from typing import List
 
-import os
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+def get_client():
+    load_dotenv()
+    return Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 AGENTS = {
     "chat": {
@@ -71,6 +75,7 @@ def detect_agent(message: str) -> str:
         return "chat"
 
 def run_agent(agent_type: str, message: str, history: List = []) -> dict:
+    client = get_client()
     agent = AGENTS[agent_type]
     
     messages = [{"role": "system", "content": agent["system"]}]

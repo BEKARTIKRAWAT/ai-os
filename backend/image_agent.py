@@ -1,15 +1,18 @@
+from dotenv import load_dotenv
+load_dotenv()
 import os
-
 import requests
 import base64
-from groq import Groq
 import urllib.parse
+from groq import Groq
 
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
-groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+def get_client():
+    load_dotenv()
+    return Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def enhance_prompt(user_prompt: str) -> str:
-    response = groq_client.chat.completions.create(
+    client = get_client()
+    response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
             {
@@ -32,8 +35,6 @@ def generate_image(prompt: str) -> dict:
     image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
     
     response = requests.get(image_url, timeout=60)
-
-    print(f"Image size: {len(response.content)} bytes")
     
     if response.status_code == 200:
         image_base64 = base64.b64encode(response.content).decode("utf-8")

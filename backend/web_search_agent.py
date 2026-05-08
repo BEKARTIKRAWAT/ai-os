@@ -1,10 +1,13 @@
+
+from dotenv import load_dotenv
+load_dotenv()
 import os
 
 from tavily import TavilyClient
 from groq import Groq
 
-tavily = TavilyClient(api_key=os.environ.get("TAVILY_API_KEY"))
-groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def web_search(query: str) -> dict:
     results = tavily.search(
@@ -52,7 +55,7 @@ Cite sources using [1], [2], etc. Format nicely with markdown."""
         }
     ]
     
-    response = groq_client.chat.completions.create(
+    response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=messages,
         max_tokens=4096,

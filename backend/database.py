@@ -1,7 +1,8 @@
+from dotenv import load_dotenv
+load_dotenv()
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 import os
-
 MONGODB_URL = "mongodb+srv://bekartikrawat:therawat02@cluster0.xxvuzys.mongodb.net/ai-os-db?appName=Cluster0"
 
 client = AsyncIOMotorClient(MONGODB_URL)
