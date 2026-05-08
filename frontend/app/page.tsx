@@ -353,14 +353,14 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Bottom */}
+        {/* Bottom */}
           <div className={`border-t ${theme === "dark" ? "border-gray-800" : "border-gray-200"} pt-3 mt-2 space-y-1`}>
             <div className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>
               <span>Tokens used</span>
               <span className="font-semibold">{totalTokens.toLocaleString()}</span>
             </div>
             <a href="/analytics" className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all ${theme === "dark" ? "text-gray-400 hover:bg-gray-800 hover:text-violet-400" : "text-gray-500 hover:bg-white hover:text-violet-600"}`}>
-              <span>📊</span> Analytics Dashboard
+              <span>{"📊"}</span> Analytics Dashboard
             </a>
             <button
               onClick={() => setTheme(t => t === "light" ? "dark" : "light")}
@@ -418,9 +418,7 @@ export default function Home() {
               </button>
             )}
             
-              href="/analytics"
-              className={`text-xs px-3 py-1.5 rounded-xl transition-all ${theme === "dark" ? "text-gray-400 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-100"}`}
-            >
+        <a href="/analytics" className={`text-xs px-3 py-1.5 rounded-xl transition-all ${theme === "dark" ? "text-gray-400 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-100"}`}>{"📊"}</a>
               📊
             </a>
           </div>
