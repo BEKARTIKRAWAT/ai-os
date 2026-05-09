@@ -1,20 +1,26 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from agents import smart_agent
-from file_agent import analyze_file
-from image_agent import generate_image
-from database import save_message, get_chat_history, get_all_sessions, delete_session, chats_collection
-from code_executor import execute_code, detect_language
 from pydantic import BaseModel
 from typing import List, Optional
 import uuid
-import re
+
+from agents import smart_agent
+from file_agent import analyze_file
+from image_agent import generate_image
+from database import (
+    save_message,
+    get_chat_history,
+    get_all_sessions,
+    delete_session,
+    chats_collection
+)
+from code_executor import execute_code, detect_language
 
 app = FastAPI(title="AI-OS Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,11 +46,8 @@ def root():
 @app.post("/chat")
 async def chat(request: ChatRequest):
     session_id = request.session_id or str(uuid.uuid4())
-    
     await save_message(session_id, "user", request.message)
-    
     result = smart_agent(request.message, request.history)
-    
     await save_message(
         session_id,
         "assistant",
@@ -52,7 +55,6 @@ async def chat(request: ChatRequest):
         result.get("agent_used", "chat"),
         result.get("tokens_used", 0)
     )
-    
     result["session_id"] = session_id
     return result
 
@@ -78,18 +80,15 @@ async def analyze_file_endpoint(
 
 @app.post("/generate-image")
 async def generate_image_endpoint(request: ChatRequest):
-    result = generate_image(request.message)
-    return result
+    return generate_image(request.message)
 
 @app.get("/sessions")
 async def get_sessions():
-    sessions = await get_all_sessions()
-    return {"sessions": sessions}
+    return {"sessions": await get_all_sessions()}
 
 @app.get("/history/{session_id}")
 async def get_history(session_id: str):
-    history = await get_chat_history(session_id)
-    return {"history": history}
+    return {"history": await get_chat_history(session_id)}
 
 @app.delete("/session/{session_id}")
 async def delete_session_endpoint(session_id: str):
@@ -105,7 +104,6 @@ async def get_analytics():
             "total_tokens": {"$sum": "$tokens"}
         }}
     ]
-    
     agent_stats = []
     async for doc in chats_collection.aggregate(pipeline):
         agent_stats.append({
@@ -113,11 +111,9 @@ async def get_analytics():
             "count": doc["count"],
             "total_tokens": doc["total_tokens"]
         })
-    
     total_messages = await chats_collection.count_documents({})
     total_sessions = len(await get_all_sessions())
     total_tokens = sum(a["total_tokens"] for a in agent_stats)
-    
     return {
         "total_messages": total_messages,
         "total_sessions": total_sessions,

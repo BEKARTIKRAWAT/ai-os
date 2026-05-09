@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-const API = "https://hundredxmind.up.railway.app";
+const API = "https://hundredxmind.onrender.com";
 
 const AGENTS: Record<string, { icon: string; label: string; desc: string; color: string; bg: string; border: string; gradient: string; dot: string }> = {
   chat: { icon: "✦", label: "AI-OS", desc: "General Assistant", color: "text-violet-600", bg: "bg-violet-50", border: "border-violet-200", gradient: "from-violet-500 to-purple-600", dot: "bg-violet-400" },
