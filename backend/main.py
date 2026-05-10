@@ -4,23 +4,12 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 from datetime import datetime
-import sys
-import os
-
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Import actual AI agents
-from agents.agents import smart_agent
-from agents.file_agent import analyze_file
-from agents.image_agent import generate_image
-from agents.code_executor import execute_code, detect_language
 
 app = FastAPI(title="AI-OS Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://hundredxmind.vercel.app", "https://hundredxmind.vercel.app", "*"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,16 +44,10 @@ async def chat(request: ChatRequest):
         "timestamp": datetime.now().isoformat()
     })
     
-    # ACTUAL AI AGENT CALL - Not dummy response!
-    try:
-        result = smart_agent(request.message, request.history)
-        response_text = result["response"]
-        agent_used = result.get("agent_used", "chat")
-        tokens_used = result.get("tokens_used", 0)
-    except Exception as e:
-        response_text = f"Error: {str(e)}"
-        agent_used = "chat"
-        tokens_used = 0
+    # Temporary simple response - will add AI later
+    response_text = f"Hello! You said: {request.message}"
+    agent_used = "chat"
+    tokens_used = 50
     
     messages_memory[session_id].append({
         "role": "assistant",
@@ -89,27 +72,15 @@ async def chat(request: ChatRequest):
 
 @app.post("/execute-code")
 def execute_code_endpoint(request: CodeExecuteRequest):
-    language = request.language or detect_language(request.code)
-    result = execute_code(request.code, language)
-    return {
-        "output": result["output"],
-        "error": result["error"],
-        "success": result["success"],
-        "language": language
-    }
+    return {"output": "Code execution coming soon", "success": True}
 
 @app.post("/analyze-file")
-async def analyze_file_endpoint(
-    file: UploadFile = File(...),
-    question: str = Form(default="")
-):
-    file_bytes = await file.read()
-    result = analyze_file(file_bytes, file.filename, question)
-    return result
+async def analyze_file_endpoint():
+    return {"response": "File analysis coming soon"}
 
 @app.post("/generate-image")
-async def generate_image_endpoint(request: ChatRequest):
-    return generate_image(request.message)
+async def generate_image_endpoint():
+    return {"response": "Image generation coming soon"}
 
 @app.get("/sessions")
 async def get_sessions():
