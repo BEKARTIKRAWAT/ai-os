@@ -42,7 +42,7 @@ export default function Home() {
     const saved = localStorage.getItem("ai-os-theme");
     if (saved && THEMES.some(t => t.id === saved)) setTheme(saved);
     loadSessions();
-    
+
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -133,7 +133,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("question", messageText);
-      
+
       try {
         const res = await fetch(`${API}/analyze-file`, {
           method: "POST",
@@ -169,7 +169,7 @@ export default function Home() {
       });
 
       const data = await res.json();
-      
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "ai",
@@ -183,9 +183,9 @@ export default function Home() {
       setSessionId(data.session_id);
       setTotalTokens(prev => prev + (data.tokens_used || 0));
       loadSessions();
-      
+
       if (data.agent_used) setCurrentAgent(data.agent_used);
-      
+
     } catch (error) {
       console.error("Failed to send message:", error);
       const errorMessage: Message = {
@@ -210,14 +210,14 @@ export default function Home() {
         body: JSON.stringify({ code, language }),
       });
       const data = await res.json();
-      setCodeOutputs(prev => ({ 
-        ...prev, 
-        [key]: data.output || data.error || "No output" 
+      setCodeOutputs(prev => ({
+        ...prev,
+        [key]: data.output || data.error || "No output"
       }));
     } catch (error) {
-      setCodeOutputs(prev => ({ 
-        ...prev, 
-        [key]: `Error: ${error}` 
+      setCodeOutputs(prev => ({
+        ...prev,
+        [key]: `Error: ${error}`
       }));
     } finally {
       setRunningCode(null);
@@ -255,7 +255,7 @@ export default function Home() {
   const agent = AGENTS[currentAgent as keyof typeof AGENTS] || AGENTS.chat;
 
   return (
-    <div 
+    <div
       className="flex h-screen overflow-hidden"
       style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}
       onDragOver={handleDragOver}
@@ -293,7 +293,7 @@ export default function Home() {
                   key={t.id}
                   onClick={() => { setTheme(t.id); setShowThemePicker(false); }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
-                  style={{ 
+                  style={{
                     background: theme === t.id ? "var(--accent)" : "var(--bg-tertiary)",
                     color: theme === t.id ? "white" : "var(--text-primary)"
                   }}
@@ -416,11 +416,10 @@ export default function Home() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                      msg.role === "user"
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user"
                         ? "bg-blue-500 text-white"
                         : "border"
-                    }`}
+                      }`}
                     style={msg.role === "ai" ? { background: "var(--bg-secondary)", borderColor: "var(--border)" } : {}}
                   >
                     {msg.role === "ai" && msg.agent && (
@@ -435,7 +434,7 @@ export default function Home() {
                             const match = /language-(\w+)/.exec(className || "");
                             const codeString = String(children).replace(/\n$/, "");
                             const msgId = msg.id;
-                            
+
                             if (match) {
                               return (
                                 <div className="relative my-2">
@@ -459,10 +458,10 @@ export default function Home() {
                                     </div>
                                   </div>
                                   <SyntaxHighlighter
-                                    style={oneDark}
+                                    style={oneDark as any}
                                     language={match[1]}
                                     PreTag="div"
-                                    customStyle={{ margin: 0, borderRadius: 0, borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }}
+                                    customStyle={{ margin: 0, borderRadius: 8 }}
                                     {...props}
                                   >
                                     {codeString}
@@ -510,14 +509,13 @@ export default function Home() {
             <div className="flex gap-2 items-end">
               <button
                 onClick={startVoice}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                  isListening ? "animate-pulse" : ""
-                }`}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isListening ? "animate-pulse" : ""
+                  }`}
                 style={{ background: isListening ? "var(--accent)" : "var(--bg-tertiary)" }}
               >
                 🎤
               </button>
-              
+
               <button
                 onClick={() => document.getElementById("file-input")?.click()}
                 className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -532,7 +530,7 @@ export default function Home() {
                 onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                 accept=".pdf,.txt,.py,.js,.json,.csv,.md"
               />
-              
+
               <textarea
                 ref={inputRef}
                 value={input}
@@ -548,7 +546,7 @@ export default function Home() {
                 style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                 rows={1}
               />
-              
+
               <button
                 onClick={() => sendMessage()}
                 disabled={!input.trim() || loading}
