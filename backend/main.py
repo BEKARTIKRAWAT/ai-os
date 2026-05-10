@@ -1,11 +1,22 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 from datetime import datetime
+import sys
+import os
 
-app = FastAPI()
+# Add parent directory to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import actual AI agents
+from agents.agents import smart_agent
+from agents.file_agent import analyze_file
+from agents.image_agent import generate_image
+from agents.code_executor import execute_code, detect_language
+
+app = FastAPI(title="AI-OS Backend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,7 +26,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory storage
 sessions_memory = {}
 messages_memory = {}
 
@@ -24,32 +34,13 @@ class ChatRequest(BaseModel):
     history: List[dict] = []
     session_id: Optional[str] = None
 
+class CodeExecuteRequest(BaseModel):
+    code: str
+    language: Optional[str] = None
+
 @app.get("/")
 def root():
-    return {"message": "AI-OS Backend Running on Render!"}
-
-@app.get("/analytics")
-async def get_analytics():
-    total_messages = sum(len(msgs) for msgs in messages_memory.values())
-    total_sessions = len(sessions_memory)
-    total_tokens = 0
-    
-    agent_stats = [
-        {"agent": "chat", "count": 0, "total_tokens": 0},
-        {"agent": "code", "count": 0, "total_tokens": 0},
-        {"agent": "research", "count": 0, "total_tokens": 0},
-        {"agent": "debug", "count": 0, "total_tokens": 0},
-        {"agent": "search", "count": 0, "total_tokens": 0},
-        {"agent": "image", "count": 0, "total_tokens": 0},
-        {"agent": "file", "count": 0, "total_tokens": 0},
-    ]
-    
-    return {
-        "total_messages": total_messages,
-        "total_sessions": total_sessions,
-        "total_tokens": total_tokens,
-        "agent_stats": agent_stats
-    }
+    return {"message": "AI-OS Backend Running!"}
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
@@ -64,12 +55,21 @@ async def chat(request: ChatRequest):
         "timestamp": datetime.now().isoformat()
     })
     
-    response_text = f"AI-OS: Received your message - '{request.message}'"
+    # ACTUAL AI AGENT CALL - Not dummy response!
+    try:
+        result = smart_agent(request.message, request.history)
+        response_text = result["response"]
+        agent_used = result.get("agent_used", "chat")
+        tokens_used = result.get("tokens_used", 0)
+    except Exception as e:
+        response_text = f"Error: {str(e)}"
+        agent_used = "chat"
+        tokens_used = 0
     
     messages_memory[session_id].append({
         "role": "assistant",
         "content": response_text,
-        "agent": "chat",
+        "agent": agent_used,
         "timestamp": datetime.now().isoformat()
     })
     
@@ -82,10 +82,34 @@ async def chat(request: ChatRequest):
     
     return {
         "response": response_text,
-        "agent_used": "chat",
-        "tokens_used": 100,
+        "agent_used": agent_used,
+        "tokens_used": tokens_used,
         "session_id": session_id
     }
+
+@app.post("/execute-code")
+def execute_code_endpoint(request: CodeExecuteRequest):
+    language = request.language or detect_language(request.code)
+    result = execute_code(request.code, language)
+    return {
+        "output": result["output"],
+        "error": result["error"],
+        "success": result["success"],
+        "language": language
+    }
+
+@app.post("/analyze-file")
+async def analyze_file_endpoint(
+    file: UploadFile = File(...),
+    question: str = Form(default="")
+):
+    file_bytes = await file.read()
+    result = analyze_file(file_bytes, file.filename, question)
+    return result
+
+@app.post("/generate-image")
+async def generate_image_endpoint(request: ChatRequest):
+    return generate_image(request.message)
 
 @app.get("/sessions")
 async def get_sessions():
@@ -104,16 +128,15 @@ async def delete_session(session_id: str):
         del sessions_memory[session_id]
     if session_id in messages_memory:
         del messages_memory[session_id]
-    return {"message": "Session deleted"}
+    return {"message": "Session deleted!"}
 
-@app.post("/execute-code")
-async def execute_code():
-    return {"output": "Code execution endpoint", "success": True}
-
-@app.post("/analyze-file")
-async def analyze_file():
-    return {"response": "File analysis endpoint"}
-
-@app.post("/generate-image")
-async def generate_image():
-    return {"response": "Image generation endpoint", "image_base64": ""}
+@app.get("/analytics")
+async def get_analytics():
+    total_messages = sum(len(msgs) for msgs in messages_memory.values())
+    total_sessions = len(sessions_memory)
+    return {
+        "total_messages": total_messages,
+        "total_sessions": total_sessions,
+        "total_tokens": 0,
+        "agent_stats": []
+    }
