@@ -417,8 +417,8 @@ export default function Home() {
                 >
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user"
-                        ? "bg-blue-500 text-white"
-                        : "border"
+                      ? "bg-blue-500 text-white"
+                      : "border"
                       }`}
                     style={msg.role === "ai" ? { background: "var(--bg-secondary)", borderColor: "var(--border)" } : {}}
                   >
@@ -462,7 +462,6 @@ export default function Home() {
                                     language={match[1]}
                                     PreTag="div"
                                     customStyle={{ margin: 0, borderRadius: 8 }}
-                                    {...props}
                                   >
                                     {codeString}
                                   </SyntaxHighlighter>
