@@ -481,12 +481,14 @@ export default function Home() {
                             return (
                               <div className="my-4">
                                 <img
-                                  src={src}
+                                  src={typeof src === 'string' ? src : ''}
                                   alt={alt || "Generated image"}
                                   className="rounded-xl max-w-full h-auto shadow-lg cursor-pointer hover:scale-105 transition-transform"
                                   style={{ maxHeight: "512px", objectFit: "contain" }}
-                                  onClick={(e) => {
-                                    window.open(src, '_blank');
+                                  onClick={() => {
+                                    if (typeof src === 'string' && src) {
+                                      window.open(src, '_blank');
+                                    }
                                   }}
                                   {...props}
                                 />
