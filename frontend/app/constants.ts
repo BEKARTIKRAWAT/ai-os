@@ -7,6 +7,9 @@ export interface Message {
   agent?: string;
   tokens?: number;
   timestamp?: Date;
+  image_base64?: string;
+  image_type?: string;
+  style?: string;
 }
 
 export interface Session {

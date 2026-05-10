@@ -168,17 +168,19 @@ export default function Home() {
         }),
       });
 
-      const data = await res.json();
+     const data = await res.json();
 
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "ai",
-        content: data.response,
-        agent: data.agent_used,
-        tokens: data.tokens_used,
-        timestamp: new Date(),
-      };
-
+const aiMessage: Message = {
+  id: (Date.now() + 1).toString(),
+  role: "ai",
+  content: data.response,
+  agent: data.agent_used,
+  tokens: data.tokens_used,
+  timestamp: new Date(),
+  image_base64: data.image_base64,
+  image_type: data.image_type,
+  style: data.style
+};
       setMessages(prev => [...prev, aiMessage]);
       setSessionId(data.session_id);
       setTotalTokens(prev => prev + (data.tokens_used || 0));
