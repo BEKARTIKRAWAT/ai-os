@@ -132,7 +132,6 @@ export default function Home() {
     setLoading(true);
 
     // Handle file upload if selected
-    let finalMessage = messageText;
     if (selectedFile) {
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -144,7 +143,6 @@ export default function Home() {
           body: formData,
         });
         const data = await res.json();
-        finalMessage = `[File: ${selectedFile.name}]\n${messageText}`;
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: "ai",
@@ -167,7 +165,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: finalMessage,
+          message: messageText,
           history: messages.map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.content })),
           session_id: sessionId,
         }),
@@ -189,7 +187,6 @@ export default function Home() {
       setTotalTokens(prev => prev + (data.tokens_used || 0));
       loadSessions();
       
-      // Update current agent based on response
       if (data.agent_used) setCurrentAgent(data.agent_used);
       
     } catch (error) {
@@ -391,12 +388,8 @@ export default function Home() {
                 <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-xl" style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}>
                   AI
                 </div>
-                <h1 className="text-3xl font-bold mb-3">
-                  Welcome to AI-OS
-                </h1>
-                <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
-                  7 specialized agents at your command
-                </p>
+                <h1 className="text-3xl font-bold mb-3">Welcome to AI-OS</h1>
+                <p className="mb-8" style={{ color: "var(--text-secondary)" }}>7 specialized agents at your command</p>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                   {Object.entries(AGENTS).map(([key, val]) => (
@@ -426,7 +419,7 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <div className="max-w-4xl mx-auto space-y-4">
+            <div className="max-w-4xl mx-auto w-full space-y-4">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -501,9 +494,7 @@ export default function Home() {
                       </ReactMarkdown>
                     </div>
                     {msg.tokens && (
-                      <div className="text-xs mt-2 opacity-50">
-                        🧠 {msg.tokens} tokens
-                      </div>
+                      <div className="text-xs mt-2 opacity-50">🧠 {msg.tokens} tokens</div>
                     )}
                   </div>
                 </div>
@@ -526,7 +517,7 @@ export default function Home() {
 
         {/* Input Area */}
         <div className="flex-shrink-0 p-4 border-t" style={{ borderColor: "var(--border)" }}>
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto w-full">
             <div className="flex gap-2 items-end">
               <button
                 onClick={startVoice}
@@ -585,39 +576,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-// Desktop-specific classes add karo
-
-<div className={`flex h-screen overflow-hidden ${isMobile ? 'mobile-view' : 'desktop-view'}`}>
-  {/* Desktop: Sidebar always visible, Mobile: Toggle */}
-  <div className={isMobile ? 'block' : 'block lg:block'}>
-    <Sidebar ... />
-  </div>
-
-  {/* Main Content - Desktop ke liye better width */}
-  <div className="flex-1 flex flex-col h-full overflow-hidden">
-    {/* Messages Area - Desktop ke liye max-width center */}
-    <div className="flex-1 overflow-y-auto px-4 py-6">
-      {messages.length === 0 ? (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
-          <div className="max-w-4xl w-full mx-auto"> {/* Desktop center */}
-            {/* Welcome content */}
-          </div>
-        </div>
-      ) : (
-        <div className="max-w-4xl mx-auto w-full"> {/* Desktop: messages center */}
-          {/* Messages */}
-        </div>
-      )}
-    </div>
-
-    {/* Input Area - Desktop ke liye wider */}
-    <div className="flex-shrink-0 p-4 border-t">
-      <div className="max-w-4xl mx-auto w-full"> {/* Center input on desktop */}
-        {/* Input */}
-      </div>
-    </div>
-  </div>
-</div>
 
       {/* Mobile sidebar overlay */}
       {isMobile && showSidebar && (
