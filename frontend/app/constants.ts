@@ -1,5 +1,5 @@
 // frontend/app/constants.ts
-export const API = "http://localhost:8000"; // Your FastAPI backend
+export const API = "https://hundredxmind.onrender.com"; // Your FastAPI backend
 
 export interface Message {
   id: string;
