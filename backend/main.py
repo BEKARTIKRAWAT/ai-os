@@ -1,122 +1,119 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import uuid
+from datetime import datetime
 
-from agents import smart_agent
-from file_agent import analyze_file
-from image_agent import generate_image
-from database import (
-    save_message,
-    get_chat_history,
-    get_all_sessions,
-    delete_session,
-    chats_collection
-)
-from code_executor import execute_code, detect_language
-
-app = FastAPI(title="AI-OS Backend")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["https://hundredxmind.vercel.app", "https://hundredxmind.vercel.app", "*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class Message(BaseModel):
-    role: str
-    content: str
+# In-memory storage
+sessions_memory = {}
+messages_memory = {}
 
 class ChatRequest(BaseModel):
     message: str
-    history: List[Message] = []
+    history: List[dict] = []
     session_id: Optional[str] = None
-
-class CodeExecuteRequest(BaseModel):
-    code: str
-    language: Optional[str] = None
 
 @app.get("/")
 def root():
-    return {"message": "AI-OS Backend Running!"}
-
-@app.post("/chat")
-async def chat(request: ChatRequest):
-    session_id = request.session_id or str(uuid.uuid4())
-    await save_message(session_id, "user", request.message)
-    result = smart_agent(request.message, request.history)
-    await save_message(
-        session_id,
-        "assistant",
-        result["response"],
-        result.get("agent_used", "chat"),
-        result.get("tokens_used", 0)
-    )
-    result["session_id"] = session_id
-    return result
-
-@app.post("/execute-code")
-def execute_code_endpoint(request: CodeExecuteRequest):
-    language = request.language or detect_language(request.code)
-    result = execute_code(request.code, language)
-    return {
-        "output": result["output"],
-        "error": result["error"],
-        "success": result["success"],
-        "language": language
-    }
-
-@app.post("/analyze-file")
-async def analyze_file_endpoint(
-    file: UploadFile = File(...),
-    question: str = Form(default="")
-):
-    file_bytes = await file.read()
-    result = analyze_file(file_bytes, file.filename, question)
-    return result
-
-@app.post("/generate-image")
-async def generate_image_endpoint(request: ChatRequest):
-    return generate_image(request.message)
-
-@app.get("/sessions")
-async def get_sessions():
-    return {"sessions": await get_all_sessions()}
-
-@app.get("/history/{session_id}")
-async def get_history(session_id: str):
-    return {"history": await get_chat_history(session_id)}
-
-@app.delete("/session/{session_id}")
-async def delete_session_endpoint(session_id: str):
-    await delete_session(session_id)
-    return {"message": "Session deleted!"}
+    return {"message": "AI-OS Backend Running on Render!"}
 
 @app.get("/analytics")
 async def get_analytics():
-    pipeline = [
-        {"$group": {
-            "_id": "$agent",
-            "count": {"$sum": 1},
-            "total_tokens": {"$sum": "$tokens"}
-        }}
+    total_messages = sum(len(msgs) for msgs in messages_memory.values())
+    total_sessions = len(sessions_memory)
+    total_tokens = 0
+    
+    agent_stats = [
+        {"agent": "chat", "count": 0, "total_tokens": 0},
+        {"agent": "code", "count": 0, "total_tokens": 0},
+        {"agent": "research", "count": 0, "total_tokens": 0},
+        {"agent": "debug", "count": 0, "total_tokens": 0},
+        {"agent": "search", "count": 0, "total_tokens": 0},
+        {"agent": "image", "count": 0, "total_tokens": 0},
+        {"agent": "file", "count": 0, "total_tokens": 0},
     ]
-    agent_stats = []
-    async for doc in chats_collection.aggregate(pipeline):
-        agent_stats.append({
-            "agent": doc["_id"],
-            "count": doc["count"],
-            "total_tokens": doc["total_tokens"]
-        })
-    total_messages = await chats_collection.count_documents({})
-    total_sessions = len(await get_all_sessions())
-    total_tokens = sum(a["total_tokens"] for a in agent_stats)
+    
     return {
         "total_messages": total_messages,
         "total_sessions": total_sessions,
         "total_tokens": total_tokens,
         "agent_stats": agent_stats
     }
+
+@app.post("/chat")
+async def chat(request: ChatRequest):
+    session_id = request.session_id or str(uuid.uuid4())
+    
+    if session_id not in messages_memory:
+        messages_memory[session_id] = []
+    
+    messages_memory[session_id].append({
+        "role": "user",
+        "content": request.message,
+        "timestamp": datetime.now().isoformat()
+    })
+    
+    response_text = f"AI-OS: Received your message - '{request.message}'"
+    
+    messages_memory[session_id].append({
+        "role": "assistant",
+        "content": response_text,
+        "agent": "chat",
+        "timestamp": datetime.now().isoformat()
+    })
+    
+    sessions_memory[session_id] = {
+        "session_id": session_id,
+        "last_message": request.message[:50],
+        "last_time": datetime.now().isoformat(),
+        "message_count": len(messages_memory[session_id])
+    }
+    
+    return {
+        "response": response_text,
+        "agent_used": "chat",
+        "tokens_used": 100,
+        "session_id": session_id
+    }
+
+@app.get("/sessions")
+async def get_sessions():
+    sessions = list(sessions_memory.values())
+    sessions.sort(key=lambda x: x["last_time"], reverse=True)
+    return {"sessions": sessions}
+
+@app.get("/history/{session_id}")
+async def get_history(session_id: str):
+    history = messages_memory.get(session_id, [])
+    return {"history": history}
+
+@app.delete("/session/{session_id}")
+async def delete_session(session_id: str):
+    if session_id in sessions_memory:
+        del sessions_memory[session_id]
+    if session_id in messages_memory:
+        del messages_memory[session_id]
+    return {"message": "Session deleted"}
+
+@app.post("/execute-code")
+async def execute_code():
+    return {"output": "Code execution endpoint", "success": True}
+
+@app.post("/analyze-file")
+async def analyze_file():
+    return {"response": "File analysis endpoint"}
+
+@app.post("/generate-image")
+async def generate_image():
+    return {"response": "Image generation endpoint", "image_base64": ""}
