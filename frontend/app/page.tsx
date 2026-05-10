@@ -475,6 +475,28 @@ export default function Home() {
                               );
                             }
                             return <code className={className} {...props}>{children}</code>;
+                          },
+                          // ✅ ADD THIS IMAGE COMPONENT
+                          img({ src, alt, ...props }) {
+                            return (
+                              <div className="my-4">
+                                <img
+                                  src={src}
+                                  alt={alt || "Generated image"}
+                                  className="rounded-xl max-w-full h-auto shadow-lg cursor-pointer hover:scale-105 transition-transform"
+                                  style={{ maxHeight: "512px", objectFit: "contain" }}
+                                  onClick={(e) => {
+                                    window.open(src, '_blank');
+                                  }}
+                                  {...props}
+                                />
+                                {alt && (
+                                  <div className="text-xs text-center mt-2 text-gray-400">
+                                    🖼️ {alt}
+                                  </div>
+                                )}
+                              </div>
+                            );
                           }
                         }}
                       >

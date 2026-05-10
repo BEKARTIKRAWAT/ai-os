@@ -5,6 +5,15 @@ from typing import List, Optional
 import uuid
 from datetime import datetime
 import os
+import sys
+
+# Add parent directory to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# ✅ Import image_agent
+from agents.image_agent import generate_image
+
+# ✅ Import Groq
 from groq import Groq
 
 app = FastAPI(title="AI-OS Backend")
@@ -23,6 +32,7 @@ if GROQ_API_KEY:
     groq_client = Groq(api_key=GROQ_API_KEY)
 else:
     groq_client = None
+    print("WARNING: GROQ_API_KEY not set!")
 
 sessions_memory = {}
 messages_memory = {}
@@ -53,12 +63,49 @@ async def chat(request: ChatRequest):
         "timestamp": datetime.now().isoformat()
     })
     
-    # Real AI response using Groq
+    # ✅ CHECK IF USER WANTS IMAGE
+    msg_lower = request.message.lower()
+    image_keywords = ["generate", "create", "draw", "make", "bnao", "photo", "picture", "image", "4k", "sketch", "anime", "realistic", "cartoon", "3d", "cyberpunk", "pixel", "watercolor", "wallpaper"]
+    
+    if any(kw in msg_lower for kw in image_keywords):
+        print(f"🎨 Image generation detected for: {request.message}")
+        # Call image_agent
+        image_result = generate_image(request.message)
+        
+        messages_memory[session_id].append({
+            "role": "assistant",
+            "content": image_result["response"],
+            "agent": "image",
+            "timestamp": datetime.now().isoformat()
+        })
+        
+        sessions_memory[session_id] = {
+            "session_id": session_id,
+            "last_message": request.message[:50],
+            "last_time": datetime.now().isoformat(),
+            "message_count": len(messages_memory[session_id])
+        }
+        
+        result = {
+            "response": image_result["response"],
+            "agent_used": "image",
+            "tokens_used": 0,
+            "session_id": session_id
+        }
+        
+        # Add image data if available
+        if image_result.get("image_base64"):
+            result["image_base64"] = image_result["image_base64"]
+            result["image_type"] = image_result.get("image_type", "image/jpeg")
+            result["style"] = image_result.get("style", "4k")
+        
+        return result
+    
+    # ✅ NORMAL CHAT - Using Groq
     if groq_client:
         try:
-            # Prepare messages
             messages = [
-                {"role": "system", "content": "You are AI-OS, a helpful AI assistant. Respond in the language the user speaks. Be concise and helpful."}
+                {"role": "system", "content": "You are AI-OS, a helpful AI assistant. Respond in the same language as the user. Be concise and helpful."}
             ]
             
             # Add history
@@ -112,33 +159,9 @@ async def chat(request: ChatRequest):
 
 @app.post("/generate-image")
 async def generate_image_endpoint(request: ChatRequest):
-    import requests
-    import base64
-    import urllib.parse
-    
-    enhanced_prompt = f"A detailed, high-quality image of {request.message}"
-    encoded_prompt = urllib.parse.quote(enhanced_prompt)
-    image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
-    
-    try:
-        response = requests.get(image_url, timeout=60)
-        if response.status_code == 200:
-            image_base64 = base64.b64encode(response.content).decode("utf-8")
-            return {
-                "response": f"🎨 Image generated for: {request.message}",
-                "agent_used": "image",
-                "tokens_used": 0,
-                "image_base64": image_base64,
-                "image_type": "image/jpeg"
-            }
-    except:
-        pass
-    
-    return {
-        "response": "Image generation failed. Try again.",
-        "agent_used": "image",
-        "tokens_used": 0
-    }
+    """Direct image generation endpoint using image_agent"""
+    result = generate_image(request.message)
+    return result
 
 @app.post("/execute-code")
 def execute_code_endpoint(request: CodeExecuteRequest):
