@@ -68,7 +68,7 @@ export default function Home() {
   const [runningCode, setRunningCode] = useState<string | null>(null);
   const [theme, setTheme] = useState("light");
   const [showThemePicker, setShowThemePicker] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -410,7 +410,7 @@ export default function Home() {
             <div className="h-full flex flex-col items-center justify-center px-4 py-8">
               <div className="max-w-2xl w-full">
                 <div className="text-center mb-8">
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white text-2xl md:text-3xl font-black mx-auto mb-4 md:mb-6 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-300 cursor-pointer" style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))", boxShadow: "0 20px 40px rgba(124,58,237,0.3)" }}>A</div>
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl md:text-3xl font-black mx-auto mb-4 md:mb-6 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-300 cursor-pointer" style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))", boxShadow: "0 20px 40px rgba(124,58,237,0.3)" }}>A</div>
                   <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-3">
                     Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}! 👋
                   </h1>
