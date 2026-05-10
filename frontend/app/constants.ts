@@ -1,5 +1,4 @@
-// frontend/app/constants.ts
-export const API = "https://hundredxmind.onrender.com"; // Your FastAPI backend
+export const API = "https://hundredxmind.onrender.com";
 
 export interface Message {
   id: string;
@@ -31,9 +30,7 @@ export const SUGGESTIONS = [
   { text: "Write a Python function to sort a list", agent: "code", icon: "💻" },
   { text: "Explain quantum computing simply", agent: "research", icon: "⚛️" },
   { text: "Search for latest AI news", agent: "search", icon: "🌐" },
-  { text: "Debug this error: TypeError...", agent: "debug", icon: "🔧" },
-  { text: "Generate an image of a futuristic city", agent: "image", icon: "🎨" },
-  { text: "Analyze this code for bugs", agent: "file", icon: "📁" }
+  { text: "Generate an image of a futuristic city", agent: "image", icon: "🎨" }
 ];
 
 export const THEMES = [
