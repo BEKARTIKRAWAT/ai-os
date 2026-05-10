@@ -1,0 +1,17 @@
+{
+  "name": "AI-OS",
+  "short_name": "AI-OS",
+  "description": "Advanced AI Platform with 7 Specialized Agents",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

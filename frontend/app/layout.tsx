@@ -33,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="application-name" content="AI-OS" />
         <meta name="apple-mobile-web-app-title" content="AI-OS" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={inter.className}>
         {children}
