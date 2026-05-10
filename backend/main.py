@@ -4,16 +4,25 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 from datetime import datetime
+import os
+from groq import Groq
 
 app = FastAPI(title="AI-OS Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://hundredxmind.vercel.app", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize Groq client
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+if GROQ_API_KEY:
+    groq_client = Groq(api_key=GROQ_API_KEY)
+else:
+    groq_client = None
 
 sessions_memory = {}
 messages_memory = {}
@@ -44,15 +53,46 @@ async def chat(request: ChatRequest):
         "timestamp": datetime.now().isoformat()
     })
     
-    # Temporary simple response - will add AI later
-    response_text = f"Hello! You said: {request.message}"
-    agent_used = "chat"
-    tokens_used = 50
+    # Real AI response using Groq
+    if groq_client:
+        try:
+            # Prepare messages
+            messages = [
+                {"role": "system", "content": "You are AI-OS, a helpful AI assistant. Respond in the language the user speaks. Be concise and helpful."}
+            ]
+            
+            # Add history
+            for msg in request.history[-10:]:
+                messages.append({
+                    "role": msg.get("role", "user"),
+                    "content": msg.get("content", "")
+                })
+            
+            # Add current message
+            messages.append({"role": "user", "content": request.message})
+            
+            # Call Groq API
+            response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1024
+            )
+            
+            response_text = response.choices[0].message.content
+            tokens_used = response.usage.total_tokens
+            
+        except Exception as e:
+            response_text = f"Error: {str(e)}"
+            tokens_used = 0
+    else:
+        response_text = "GROQ_API_KEY not set. Please add it in Render environment variables."
+        tokens_used = 0
     
     messages_memory[session_id].append({
         "role": "assistant",
         "content": response_text,
-        "agent": agent_used,
+        "agent": "chat",
         "timestamp": datetime.now().isoformat()
     })
     
@@ -65,9 +105,39 @@ async def chat(request: ChatRequest):
     
     return {
         "response": response_text,
-        "agent_used": agent_used,
+        "agent_used": "chat",
         "tokens_used": tokens_used,
         "session_id": session_id
+    }
+
+@app.post("/generate-image")
+async def generate_image_endpoint(request: ChatRequest):
+    import requests
+    import base64
+    import urllib.parse
+    
+    enhanced_prompt = f"A detailed, high-quality image of {request.message}"
+    encoded_prompt = urllib.parse.quote(enhanced_prompt)
+    image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
+    
+    try:
+        response = requests.get(image_url, timeout=60)
+        if response.status_code == 200:
+            image_base64 = base64.b64encode(response.content).decode("utf-8")
+            return {
+                "response": f"🎨 Image generated for: {request.message}",
+                "agent_used": "image",
+                "tokens_used": 0,
+                "image_base64": image_base64,
+                "image_type": "image/jpeg"
+            }
+    except:
+        pass
+    
+    return {
+        "response": "Image generation failed. Try again.",
+        "agent_used": "image",
+        "tokens_used": 0
     }
 
 @app.post("/execute-code")
@@ -77,10 +147,6 @@ def execute_code_endpoint(request: CodeExecuteRequest):
 @app.post("/analyze-file")
 async def analyze_file_endpoint():
     return {"response": "File analysis coming soon"}
-
-@app.post("/generate-image")
-async def generate_image_endpoint():
-    return {"response": "Image generation coming soon"}
 
 @app.get("/sessions")
 async def get_sessions():
