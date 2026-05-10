@@ -428,83 +428,77 @@ export default function Home() {
                       </div>
                     )}
                     <div className="prose prose-sm max-w-none" style={{ color: msg.role === "user" ? "white" : "var(--text-primary)" }}>
-                      <ReactMarkdown
-                        components={{
-                          code({ className, children, ...props }) {
-                            const match = /language-(\w+)/.exec(className || "");
-                            const codeString = String(children).replace(/\n$/, "");
-                            const msgId = msg.id;
+  {/* ✅ IMAGE DISPLAY FIX */}
+  {(msg as any).image_base64 && (msg as any).image_base64.length > 500 ? (
+    <div className="my-4">
+      <img 
+        src={`data:${(msg as any).image_type || 'image/jpeg'};base64,${(msg as any).image_base64}`}
+        alt="Generated image"
+        className="rounded-xl max-w-full h-auto shadow-lg cursor-pointer hover:scale-102 transition-transform"
+        style={{ maxHeight: "512px", objectFit: "contain" }}
+        onClick={() => {
+          window.open(`data:${(msg as any).image_type || 'image/jpeg'};base64,${(msg as any).image_base64}`, '_blank');
+        }}
+      />
+      <div className="text-xs text-center mt-2 opacity-70">
+        🎨 {(msg as any).style ? `Style: ${(msg as any).style}` : 'AI Generated'} | Click to expand
+      </div>
+    </div>
+  ) : (
+    <ReactMarkdown
+      components={{
+        code({ className, children, ...props }) {
+          const match = /language-(\w+)/.exec(className || "");
+          const codeString = String(children).replace(/\n$/, "");
+          const msgId = msg.id;
 
-                            if (match) {
-                              return (
-                                <div className="relative my-2">
-                                  <div className="flex items-center justify-between px-3 py-1.5 text-xs" style={{ background: "#1a1a1a", borderTopLeftRadius: 8, borderTopRightRadius: 8 }}>
-                                    <span style={{ color: "#aaa" }}>{match[1]}</span>
-                                    <div className="flex gap-2">
-                                      <button
-                                        onClick={() => copyToClipboard(codeString, `code-${msgId}`)}
-                                        className="hover:text-white transition-colors"
-                                        style={{ color: "#888" }}
-                                      >
-                                        {copiedId === `code-${msgId}` ? "✓" : "📋"}
-                                      </button>
-                                      <button
-                                        onClick={() => runCode(codeString, match[1], msgId)}
-                                        className="hover:text-white transition-colors"
-                                        style={{ color: "#888" }}
-                                      >
-                                        {runningCode === `${msgId}-${match[1]}` ? "⏳" : "▶"}
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <SyntaxHighlighter
-                                    style={oneDark as any}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    customStyle={{ margin: 0, borderRadius: 8 }}
-                                  >
-                                    {codeString}
-                                  </SyntaxHighlighter>
-                                  {codeOutputs[`${msgId}-${match[1]}`] && (
-                                    <div className="mt-2 p-3 rounded-lg text-sm font-mono" style={{ background: "#0a0a0a", border: "1px solid #2a2a2a" }}>
-                                      <div className="text-xs mb-1" style={{ color: "#4ade80" }}>Output:</div>
-                                      <pre className="whitespace-pre-wrap text-xs" style={{ color: "#ccc" }}>{codeOutputs[`${msgId}-${match[1]}`]}</pre>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            }
-                            return <code className={className} {...props}>{children}</code>;
-                          },
-                          // ✅ ADD THIS IMAGE COMPONENT
-                          img({ src, alt, ...props }) {
-                            return (
-                              <div className="my-4">
-                                <img
-                                  src={typeof src === 'string' ? src : ''}
-                                  alt={alt || "Generated image"}
-                                  className="rounded-xl max-w-full h-auto shadow-lg cursor-pointer hover:scale-105 transition-transform"
-                                  style={{ maxHeight: "512px", objectFit: "contain" }}
-                                  onClick={() => {
-                                    if (typeof src === 'string' && src) {
-                                      window.open(src, '_blank');
-                                    }
-                                  }}
-                                  {...props}
-                                />
-                                {alt && (
-                                  <div className="text-xs text-center mt-2 text-gray-400">
-                                    🖼️ {alt}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          }
-                        }}
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
-                    </div>
+          if (match) {
+            return (
+              <div className="relative my-2">
+                <div className="flex items-center justify-between px-3 py-1.5 text-xs" style={{ background: "#1a1a1a", borderTopLeftRadius: 8, borderTopRightRadius: 8 }}>
+                  <span style={{ color: "#aaa" }}>{match[1]}</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => copyToClipboard(codeString, `code-${msgId}`)}
+                      className="hover:text-white transition-colors"
+                      style={{ color: "#888" }}
+                    >
+                      {copiedId === `code-${msgId}` ? "✓" : "📋"}
+                    </button>
+                    <button
+                      onClick={() => runCode(codeString, match[1], msgId)}
+                      className="hover:text-white transition-colors"
+                      style={{ color: "#888" }}
+                    >
+                      {runningCode === `${msgId}-${match[1]}` ? "⏳" : "▶"}
+                    </button>
+                  </div>
+                </div>
+                <SyntaxHighlighter
+                  style={oneDark as any}
+                  language={match[1]}
+                  PreTag="div"
+                  customStyle={{ margin: 0, borderRadius: 8 }}
+                >
+                  {codeString}
+                </SyntaxHighlighter>
+                {codeOutputs[`${msgId}-${match[1]}`] && (
+                  <div className="mt-2 p-3 rounded-lg text-sm font-mono" style={{ background: "#0a0a0a", border: "1px solid #2a2a2a" }}>
+                    <div className="text-xs mb-1" style={{ color: "#4ade80" }}>Output:</div>
+                    <pre className="whitespace-pre-wrap text-xs" style={{ color: "#ccc" }}>{codeOutputs[`${msgId}-${match[1]}`]}</pre>
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return <code className={className} {...props}>{children}</code>;
+        }
+      }}
+    >
+      {msg.content}
+    </ReactMarkdown>
+  )}
+</div>
                     {msg.tokens && (
                       <div className="text-xs mt-2 opacity-50">🧠 {msg.tokens} tokens</div>
                     )}
