@@ -182,3 +182,193 @@ body {
     gap: 1.5rem;
   }
 }
+
+/* Android Specific Fixes */
+@media (max-width: 640px) {
+  /* Android ke liye better touch targets */
+  button, 
+  .clickable,
+  [role="button"],
+  .sidebar-button {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  /* Android ke liye text size */
+  body {
+    font-size: 16px; /* Prevent zoom on focus */
+  }
+  
+  /* Input fields - better for Android keyboard */
+  input, textarea {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+  
+  /* Chat bubbles - Android style */
+  .message-bubble {
+    max-width: 85%;
+    padding: 12px 16px;
+    margin: 8px 0;
+  }
+  
+  /* Sidebar - Android edge swipe */
+  .sidebar-android {
+    width: 85%;
+    max-width: 320px;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+  }
+  
+  /* Android back button handling */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  /* Better scrolling for Android */
+  .overflow-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Prevent 300ms tap delay */
+  * {
+    touch-action: manipulation;
+  }
+  
+  /* Android ripple effect */
+  .ripple-effect {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .ripple-effect:active {
+    transform: scale(0.98);
+    transition: transform 0.05s;
+  }
+}
+
+/* Samsung Galaxy Specific (Fold, S23, etc) */
+@media (min-width: 360px) and (max-width: 480px) {
+  .galaxy-fold {
+    font-size: 14px;
+  }
+  
+  .compact-view {
+    padding: 8px;
+  }
+}
+
+/* OnePlus, Pixel, Xiaomi */
+@media (min-width: 1080px) and (max-width: 1440px) {
+  .high-res-android {
+    /* Better for high DPI screens */
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Android Keyboard Open State */
+@media (max-height: 500px) {
+  .keyboard-open {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  .message-input-container {
+    margin-bottom: 0;
+  }
+}
+
+/* Android Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .android-dark {
+    background: #1a1a1a;
+  }
+}
+
+/* Android Bottom Navigation */
+.android-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border);
+  padding: 8px 16px;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  display: flex;
+  justify-content: space-around;
+  z-index: 50;
+}
+
+.android-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  min-width: 64px;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.android-nav-item.active {
+  background: var(--accent);
+  color: white;
+}
+
+/* Android Toast Notifications */
+.android-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 48px;
+  text-align: center;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Android Pull to Refresh */
+.pull-to-refresh {
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pull-indicator {
+  position: absolute;
+  top: -50px;
+  left: 0;
+  right: 0;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: top 0.2s;
+}
+
+.pull-indicator.show {
+  top: 0;
+}
+
+/* Android Haptic Feedback Simulation */
+.haptic-feedback:active {
+  transform: scale(0.97);
+  transition: transform 0.05s;
+}

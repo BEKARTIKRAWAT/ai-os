@@ -39,6 +39,39 @@ export default function Sidebar({
   formatDate,
 }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
+// Add this useEffect in Sidebar component for Android gesture detection
+useEffect(() => {
+  let touchStartX = 0;
+  
+  const handleTouchStart = (e: TouchEvent) => {
+    touchStartX = e.touches[0].clientX;
+  };
+  
+  const handleTouchEnd = (e: TouchEvent) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const swipeDistance = touchEndX - touchStartX;
+    
+    // Right swipe to open sidebar on Android
+    if (swipeDistance > 80 && touchStartX < 50 && !showSidebar && isMobile) {
+      onClose(); // This actually opens it - fix naming
+    }
+    
+    // Left swipe to close
+    if (swipeDistance < -80 && showSidebar && isMobile) {
+      onClose();
+    }
+  };
+  
+  if (isMobile) {
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchend', handleTouchEnd);
+  }
+  
+  return () => {
+    document.removeEventListener('touchstart', handleTouchStart);
+    document.removeEventListener('touchend', handleTouchEnd);
+  };
+}, [isMobile, showSidebar, onClose]);
 
   useEffect(() => {
     setMounted(true);
