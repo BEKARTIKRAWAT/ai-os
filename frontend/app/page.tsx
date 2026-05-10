@@ -28,7 +28,6 @@ export default function Home() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Apply theme styles
   useEffect(() => {
     const styles = THEME_STYLES[theme as keyof typeof THEME_STYLES];
     if (styles) {
@@ -44,7 +43,6 @@ export default function Home() {
     if (saved && THEMES.some(t => t.id === saved)) setTheme(saved);
     loadSessions();
     
-    // Check mobile
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -131,7 +129,6 @@ export default function Home() {
     setInput("");
     setLoading(true);
 
-    // Handle file upload if selected
     if (selectedFile) {
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -265,7 +262,6 @@ export default function Home() {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Drag overlay */}
       {dragOver && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           <div className="text-center p-8 rounded-2xl border-2 border-dashed" style={{ borderColor: "var(--accent)" }}>
@@ -276,7 +272,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* File selected indicator */}
       {selectedFile && (
         <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-40 px-4 py-2 rounded-full shadow-lg flex items-center gap-2" style={{ background: "var(--accent)", color: "white" }}>
           <span>📄</span>
@@ -285,7 +280,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Theme Picker */}
       {showThemePicker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setShowThemePicker(false)}>
           <div className="rounded-3xl p-6 shadow-2xl w-full max-w-sm" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
@@ -317,7 +311,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Sidebar */}
       <Sidebar
         showSidebar={showSidebar}
         isMobile={isMobile}
@@ -342,9 +335,7 @@ export default function Home() {
         formatDate={formatDate}
       />
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Header */}
         <header className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ background: "var(--header)", borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-3">
             <button
@@ -380,7 +371,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
@@ -441,12 +431,12 @@ export default function Home() {
                     <div className="prose prose-sm max-w-none" style={{ color: msg.role === "user" ? "white" : "var(--text-primary)" }}>
                       <ReactMarkdown
                         components={{
-                          code({ node, inline, className, children, ...props }) {
+                          code({ className, children, ...props }) {
                             const match = /language-(\w+)/.exec(className || "");
                             const codeString = String(children).replace(/\n$/, "");
                             const msgId = msg.id;
                             
-                            if (!inline && match) {
+                            if (match) {
                               return (
                                 <div className="relative my-2">
                                   <div className="flex items-center justify-between px-3 py-1.5 text-xs" style={{ background: "#1a1a1a", borderTopLeftRadius: 8, borderTopRightRadius: 8 }}>
@@ -515,7 +505,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Input Area */}
         <div className="flex-shrink-0 p-4 border-t" style={{ borderColor: "var(--border)" }}>
           <div className="max-w-4xl mx-auto w-full">
             <div className="flex gap-2 items-end">
@@ -577,7 +566,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Mobile sidebar overlay */}
       {isMobile && showSidebar && (
         <div className="fixed inset-0 z-20 bg-black bg-opacity-50" onClick={() => setShowSidebar(false)} />
       )}
