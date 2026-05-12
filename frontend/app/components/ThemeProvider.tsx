@@ -20,19 +20,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true)
     const savedTheme = localStorage.getItem('theme') as Theme | null
-    if (savedTheme) {
-      setTheme(savedTheme)
-    }
+    if (savedTheme) setTheme(savedTheme)
   }, [])
 
   useEffect(() => {
     if (!mounted) return
-
     localStorage.setItem('theme', theme)
-    
     const root = document.documentElement
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    
     if (theme === 'system') {
       setResolvedTheme(systemDark ? 'dark' : 'light')
       root.classList.toggle('dark', systemDark)
@@ -42,9 +37,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [theme, mounted])
 
-  if (!mounted) {
-    return <>{children}</>
-  }
+  if (!mounted) return <>{children}</>
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
@@ -55,8 +48,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export const useTheme = () => {
   const context = useContext(ThemeContext)
-  if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider')
-  }
+  if (!context) throw new Error('useTheme must be used within ThemeProvider')
   return context
 }
