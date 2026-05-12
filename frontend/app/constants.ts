@@ -1,4 +1,4 @@
-export const API = "https://hundredxmind.onrender.com";
+export const API = "http://localhost:8000";
 
 export interface Message {
   id: string;
