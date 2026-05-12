@@ -14,7 +14,7 @@ import {
   FiHeart, FiBookmark, FiFlag, FiRefreshCw, FiMaximize2,
   FiMinimize2, FiVolume2, FiVolumeX, FiVideo, FiCamera,
   FiMusic, FiGrid, FiList, FiLayout, FiMonitor, FiSmartphone,
-  FiTablet, FiDesktop, FiCloud, FiDatabase, FiCpu, FiHardDrive,
+  FiTablet, FiCloud, FiDatabase, FiCpu, FiHardDrive,
   FiWifi, FiBluetooth, FiBattery, FiZap, FiAward, FiTrophy,
   FiTarget, FiCompass, FiMap, FiGlobe, FiLock, FiUnlock,
   FiShield, FiAlertCircle, FiInfo, FiHelpCircle, FiLifeBuoy
