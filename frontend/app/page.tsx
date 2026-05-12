@@ -2,9 +2,9 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Sidebar from "./components/Sidebar";
-import { API, AGENTS, SUGGESTIONS, THEMES, THEME_STYLES, Message, Session } from "./constants";
+import { API, AGENTS, SUGGESTIONS, Message, Session } from "./constants";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -22,25 +22,11 @@ export default function Home() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [codeOutputs, setCodeOutputs] = useState<Record<string, string>>({});
   const [runningCode, setRunningCode] = useState<string | null>(null);
-  const [theme, setTheme] = useState("dark");
-  const [showThemePicker, setShowThemePicker] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const styles = THEME_STYLES[theme as keyof typeof THEME_STYLES];
-    if (styles) {
-      Object.entries(styles).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(key, value as string);
-      });
-    }
-    localStorage.setItem("ai-os-theme", theme);
-  }, [theme]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("ai-os-theme");
-    if (saved && THEMES.some(t => t.id === saved)) setTheme(saved);
     loadSessions();
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -238,53 +224,26 @@ export default function Home() {
     if (file) setSelectedFile(file);
   };
 
-  const currentTheme = THEMES.find(t => t.id === theme) || THEMES[0];
   const agent = AGENTS[currentAgent as keyof typeof AGENTS] || AGENTS.chat;
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}
-      onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+    <div className="flex h-screen overflow-hidden bg-white" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
       
       {dragOver && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-          <div className="text-center p-8 rounded-2xl border-2 border-dashed" style={{ borderColor: "var(--accent)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="text-center p-8 rounded-2xl border-2 border-dashed border-green-500 bg-white">
             <div className="text-5xl mb-2">📁</div>
-            <div className="text-xl font-bold mb-1">Drop file here</div>
-            <div className="text-sm" style={{ color: "var(--text-secondary)" }}>PDF, TXT, Python, JS, JSON, CSV</div>
+            <div className="text-xl font-bold text-gray-800">Drop file here</div>
+            <div className="text-sm text-gray-500">PDF, TXT, Python, JS, JSON, CSV</div>
           </div>
         </div>
       )}
 
       {selectedFile && (
-        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-40 px-4 py-2 rounded-full shadow-lg flex items-center gap-2" style={{ background: "var(--accent)", color: "white" }}>
+        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-40 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 bg-green-600 text-white">
           <span>📄</span>
           <span className="text-sm">{selectedFile.name}</span>
           <button onClick={() => setSelectedFile(null)} className="ml-2 text-white">✕</button>
-        </div>
-      )}
-
-      {showThemePicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setShowThemePicker(false)}>
-          <div className="rounded-3xl p-6 shadow-2xl w-full max-w-sm" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-lg">Choose Theme</h3>
-              <button onClick={() => setShowThemePicker(false)} className="w-8 h-8 flex items-center justify-center rounded-xl" style={{ background: "var(--bg-tertiary)" }}>✕</button>
-            </div>
-            <div className="space-y-2">
-              {THEMES.map(t => (
-                <button key={t.id} onClick={() => { setTheme(t.id); setShowThemePicker(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
-                  style={{ background: theme === t.id ? "var(--accent)" : "var(--bg-tertiary)", color: theme === t.id ? "white" : "var(--text-primary)" }}>
-                  <span className="text-2xl">{t.icon}</span>
-                  <div className="text-left flex-1">
-                    <div className="font-semibold text-sm">{t.name}</div>
-                    <div className="text-xs opacity-70">{t.desc}</div>
-                  </div>
-                  {theme === t.id && <span>✓</span>}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 
@@ -299,45 +258,42 @@ export default function Home() {
       />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <header className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ background: "var(--header)", borderBottom: "1px solid var(--border)" }}>
+        <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="w-9 h-9 flex items-center justify-center rounded-xl transition-all" style={{ background: "var(--bg-tertiary)" }}>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold" style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}>A</div>
-              <span className="font-semibold">AI-OS</span>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-600 to-teal-600 flex items-center justify-center text-white font-bold">A</div>
+              <span className="font-semibold text-gray-800">HundredXMind</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border)" }}>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-sm">
             <span>{agent.icon}</span>
-            <span style={{ color: "var(--accent)" }}>{agent.label}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setShowThemePicker(true)} className="w-9 h-9 flex items-center justify-center rounded-xl transition-all" style={{ background: "var(--bg-tertiary)" }}>{currentTheme.icon}</button>
+            <span className="text-gray-700">{agent.label}</span>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="flex-1 overflow-y-auto px-4 py-6 bg-gray-50">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
               <div className="max-w-2xl w-full text-center">
-                <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-xl" style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}>AI</div>
-                <h1 className="text-3xl font-bold mb-3">Welcome to AI-OS</h1>
-                <p className="mb-8" style={{ color: "var(--text-secondary)" }}>7 specialized agents at your command</p>
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-600 to-teal-600 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-lg">AI</div>
+                <h1 className="text-3xl font-bold text-gray-800 mb-3">Welcome to HundredXMind</h1>
+                <p className="mb-8 text-gray-500">7 specialized agents at your command</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                   {Object.entries(AGENTS).map(([key, val]) => (
-                    <div key={key} className="text-center p-3 rounded-xl" style={{ background: "var(--bg-secondary)" }}>
+                    <div key={key} className="text-center p-3 rounded-xl bg-white border border-gray-200 shadow-sm">
                       <div className="text-2xl mb-1">{val.icon}</div>
-                      <div className="text-sm font-medium">{val.label}</div>
+                      <div className="text-sm font-medium text-gray-700">{val.label}</div>
                     </div>
                   ))}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {SUGGESTIONS.map((s, i) => (
-                    <button key={i} onClick={() => sendMessage(s.text)} className="flex items-start gap-3 p-4 rounded-xl text-left transition-all hover:scale-[1.02]" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+                    <button key={i} onClick={() => sendMessage(s.text)} className="flex items-start gap-3 p-4 rounded-xl text-left transition-all hover:shadow-md bg-white border border-gray-200">
                       <span className="text-2xl">{s.icon}</span>
-                      <div><div className="text-sm">{s.text}</div><div className="text-xs mt-1" style={{ color: "var(--accent)" }}>{AGENTS[s.agent as keyof typeof AGENTS]?.icon} {AGENTS[s.agent as keyof typeof AGENTS]?.label}</div></div>
+                      <div><div className="text-sm text-gray-800">{s.text}</div><div className="text-xs mt-1 text-green-600">{AGENTS[s.agent as keyof typeof AGENTS]?.icon} {AGENTS[s.agent as keyof typeof AGENTS]?.label}</div></div>
                     </button>
                   ))}
                 </div>
@@ -347,13 +303,13 @@ export default function Home() {
             <div className="max-w-4xl mx-auto w-full space-y-4">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user" ? "bg-blue-500 text-white" : "border"}`} style={msg.role === "ai" ? { background: "var(--bg-secondary)", borderColor: "var(--border)" } : {}}>
-                    {msg.role === "ai" && msg.agent && (<div className="text-xs mb-2" style={{ color: "var(--accent)" }}>{AGENTS[msg.agent as keyof typeof AGENTS]?.icon} {AGENTS[msg.agent as keyof typeof AGENTS]?.label}</div>)}
-                    <div className="prose prose-sm max-w-none" style={{ color: msg.role === "user" ? "white" : "var(--text-primary)" }}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user" ? "bg-green-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
+                    {msg.role === "ai" && msg.agent && (<div className="text-xs mb-2 text-gray-400">{AGENTS[msg.agent as keyof typeof AGENTS]?.icon} {AGENTS[msg.agent as keyof typeof AGENTS]?.label}</div>)}
+                    <div className="prose prose-sm max-w-none">
                       {(msg as any).image_base64 ? (
                         <div className="my-4">
                           <img src={`data:${(msg as any).image_type || 'image/jpeg'};base64,${(msg as any).image_base64}`} alt="Generated" className="rounded-xl max-w-full h-auto shadow-lg cursor-pointer" style={{ maxHeight: "512px" }} onClick={() => window.open(`data:${(msg as any).image_type || 'image/jpeg'};base64,${(msg as any).image_base64}`, '_blank')} />
-                          <div className="text-xs text-center mt-2 opacity-70">🎨 {(msg as any).style ? `Style: ${(msg as any).style}` : 'AI Generated'} | Click to expand</div>
+                          <div className="text-xs text-center mt-2 text-gray-400">🎨 {(msg as any).style ? `Style: ${(msg as any).style}` : 'AI Generated'} | Click to expand</div>
                         </div>
                       ) : (
                         <ReactMarkdown components={{
@@ -362,7 +318,7 @@ export default function Home() {
                             const codeString = String(children).replace(/\n$/, "");
                             const msgId = msg.id;
                             if (match) {
-                              return (<div className="relative my-2"><div className="flex items-center justify-between px-3 py-1.5 text-xs" style={{ background: "#1a1a1a", borderTopLeftRadius: 8, borderTopRightRadius: 8 }}><span style={{ color: "#aaa" }}>{match[1]}</span><div className="flex gap-2"><button onClick={() => copyToClipboard(codeString, `code-${msgId}`)} className="hover:text-white transition-colors" style={{ color: "#888" }}>{copiedId === `code-${msgId}` ? "✓" : "📋"}</button><button onClick={() => runCode(codeString, match[1], msgId)} className="hover:text-white transition-colors" style={{ color: "#888" }}>{runningCode === `${msgId}-${match[1]}` ? "⏳" : "▶"}</button></div></div><SyntaxHighlighter style={oneDark as any} language={match[1]} PreTag="div" customStyle={{ margin: 0, borderRadius: 8 }}>{codeString}</SyntaxHighlighter>{codeOutputs[`${msgId}-${match[1]}`] && (<div className="mt-2 p-3 rounded-lg text-sm font-mono" style={{ background: "#0a0a0a", border: "1px solid #2a2a2a" }}><div className="text-xs mb-1" style={{ color: "#4ade80" }}>Output:</div><pre className="whitespace-pre-wrap text-xs" style={{ color: "#ccc" }}>{codeOutputs[`${msgId}-${match[1]}`]}</pre></div>)}</div>);
+                              return (<div className="relative my-2"><div className="flex items-center justify-between px-3 py-1.5 text-xs bg-gray-800 rounded-t-lg"><span className="text-gray-400">{match[1]}</span><div className="flex gap-2"><button onClick={() => copyToClipboard(codeString, `code-${msgId}`)} className="hover:text-white transition-colors text-gray-500">{copiedId === `code-${msgId}` ? "✓" : "📋"}</button><button onClick={() => runCode(codeString, match[1], msgId)} className="hover:text-white transition-colors text-gray-500">{runningCode === `${msgId}-${match[1]}` ? "⏳" : "▶"}</button></div></div><SyntaxHighlighter language={match[1]} style={oneLight} PreTag="div" className="rounded-b-lg">{codeString}</SyntaxHighlighter>{codeOutputs[`${msgId}-${match[1]}`] && (<div className="mt-2 p-3 rounded-lg text-sm font-mono bg-gray-900 text-green-400 border border-gray-700"><div className="text-xs mb-1 text-gray-400">Output:</div><pre className="whitespace-pre-wrap text-xs">{codeOutputs[`${msgId}-${match[1]}`]}</pre></div>)}</div>);
                             }
                             return <code className={className} {...props}>{children}</code>;
                           }
@@ -373,27 +329,27 @@ export default function Home() {
                   </div>
                 </div>
               ))}
-              {loading && (<div className="flex justify-start"><div className="rounded-2xl px-4 py-3" style={{ background: "var(--bg-secondary)" }}><div className="flex gap-1"><span className="w-2 h-2 rounded-full animate-bounce" style={{ background: "var(--accent)" }}></span><span className="w-2 h-2 rounded-full animate-bounce" style={{ background: "var(--accent)", animationDelay: "0.1s" }}></span><span className="w-2 h-2 rounded-full animate-bounce" style={{ background: "var(--accent)", animationDelay: "0.2s" }}></span></div></div></div>)}
+              {loading && (<div className="flex justify-start"><div className="rounded-2xl px-4 py-3 bg-white border border-gray-200"><div className="flex gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></span><span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0.1s" }}></span><span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0.2s" }}></span></div></div></div>)}
               <div ref={bottomRef} />
             </div>
           )}
         </div>
 
-        <div className="flex-shrink-0 p-4 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
           <div className="max-w-4xl mx-auto w-full">
             <div className="flex gap-2 items-end">
-              <button onClick={startVoice} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isListening ? "animate-pulse" : ""}`} style={{ background: isListening ? "var(--accent)" : "var(--bg-tertiary)" }}>🎤</button>
-              <button onClick={() => document.getElementById("file-input")?.click()} className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--bg-tertiary)" }}>📎</button>
+              <button onClick={startVoice} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isListening ? "bg-red-500 text-white animate-pulse" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>🎤</button>
+              <button onClick={() => document.getElementById("file-input")?.click()} className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 text-gray-600 hover:bg-gray-200">📎</button>
               <input id="file-input" type="file" className="hidden" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} accept=".pdf,.txt,.py,.js,.json,.csv,.md" />
-              <textarea ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Type your message... (Enter to send, Shift+Enter for new line)" className="flex-1 rounded-xl px-4 py-3 resize-none focus:outline-none" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)", color: "var(--text-primary)" }} rows={1} />
-              <button onClick={() => sendMessage()} disabled={!input.trim() || loading} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-50" style={{ background: "var(--accent)", color: "white" }}>➤</button>
+              <textarea ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Type your message... (Enter to send, Shift+Enter for new line)" className="flex-1 rounded-xl px-4 py-3 resize-none focus:outline-none border border-gray-200 bg-white text-gray-800 focus:border-green-500 focus:ring-1 focus:ring-green-500" rows={1} />
+              <button onClick={() => sendMessage()} disabled={!input.trim() || loading} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-50 bg-green-600 hover:bg-green-700 text-white">➤</button>
             </div>
-            <div className="text-xs text-center mt-2" style={{ color: "var(--text-secondary)" }}>{totalTokens > 0 && `Total tokens: ${totalTokens.toLocaleString()} | `}AI-OS v1.0</div>
+            <div className="text-xs text-center mt-2 text-gray-400">{totalTokens > 0 && `Total tokens: ${totalTokens.toLocaleString()} | `}HundredXMind AI-OS</div>
           </div>
         </div>
       </div>
 
-      {isMobile && isSidebarOpen && (<div className="fixed inset-0 z-20 bg-black bg-opacity-50" onClick={() => setIsSidebarOpen(false)} />)}
+      {isMobile && isSidebarOpen && (<div className="fixed inset-0 z-20 bg-black/50" onClick={() => setIsSidebarOpen(false)} />)}
     </div>
   );
 }
