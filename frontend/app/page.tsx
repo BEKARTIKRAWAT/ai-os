@@ -30,21 +30,50 @@ export default function Home() {
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
-    setMessages((prev) => [...prev, { id: Date.now(), role: "user", content: input }]);
+    // ✅ IMAGE DETECTION
+    const isImageRequest = input.toLowerCase().includes("generate") && 
+                           (input.toLowerCase().includes("image") || 
+                            input.toLowerCase().includes("photo") ||
+                            input.toLowerCase().includes("picture") ||
+                            input.toLowerCase().includes("bnao") ||
+                            input.toLowerCase().includes("draw"));
+
+    const userMsg = { id: Date.now(), role: "user", content: input };
+    setMessages(prev => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
     try {
-      const res = await fetch(`${API}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input, session_id: sessionId }),
-      });
+      let res;
+      if (isImageRequest) {
+        // ✅ Call image generation endpoint
+        res = await fetch(`${API}/generate-image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: input }),
+        });
+      } else {
+        // ✅ Normal chat
+        res = await fetch(`${API}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: input, session_id: sessionId }),
+        });
+      }
+      
       const data = await res.json();
-      setMessages((prev) => [...prev, { id: Date.now() + 1, role: "assistant", content: data.response || "Hello! How can I help?" }]);
+      const aiMsg: any = { id: Date.now() + 1, role: "assistant", content: data.response || "Hello! How can I help?" };
+      
+      // ✅ If image response has base64
+      if (data.image_base64) {
+        aiMsg.image_base64 = data.image_base64;
+        aiMsg.image_type = data.image_type;
+      }
+      
+      setMessages(prev => [...prev, aiMsg]);
       setSessionId(data.session_id);
-    } catch {
-      setMessages((prev) => [...prev, { id: Date.now() + 1, role: "assistant", content: "Error connecting to server" }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: "assistant", content: "Error connecting to server" }]);
     }
     setLoading(false);
   };
@@ -63,7 +92,12 @@ export default function Home() {
   };
 
   const menuItems = ["Chat", "Code", "Image", "Files"];
-  const suggestions = ["Write a Python function", "Explain quantum computing", "Generate an image of a cat", "Search for AI news"];
+  const suggestions = [
+    "Write a Python function", 
+    "Explain quantum computing", 
+    "Generate an image of a cat", 
+    "Search for AI news"
+  ];
 
   return (
     <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
@@ -118,6 +152,14 @@ export default function Home() {
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" && <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center mr-2 shrink-0"><span className="text-white text-xs">AI</span></div>}
                   <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${msg.role === "user" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"}`}>
+                    {/* ✅ IMAGE DISPLAY */}
+                    {msg.image_base64 && (
+                      <img 
+                        src={`data:${msg.image_type || 'image/jpeg'};base64,${msg.image_base64}`}
+                        alt="Generated"
+                        className="rounded-lg max-w-full max-h-96 object-contain mb-2"
+                      />
+                    )}
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                   {msg.role === "user" && <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2 shrink-0"><span className="text-gray-600 text-xs">U</span></div>}
